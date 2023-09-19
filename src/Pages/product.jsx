@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Button from "../components/Elements/Button";
 import CardProduct from "../components/Fragments/CardProduct";
 
@@ -6,12 +7,14 @@ const products = [
     id: 1,
     img: "https://picsum.photos/200",
     title: "Sepatu",
+    price: 100000,
     description: "Lorem ipsum dolor sit amet",
   },
   {
     id: 2,
     img: "https://picsum.photos/200",
     title: "Sepatu 2",
+    price: 200000,
     description: "Lorem ipsum dolor sit amet 2",
   },
 ];
@@ -19,10 +22,28 @@ const products = [
 const email = localStorage.getItem("email");
 
 const ProductPage = () => {
+  const [cart, setCart] = useState([
+    {
+      id: 1,
+      qty: 1,
+    },
+  ]);
   const handleLogout = () => {
     localStorage.removeItem("email");
     localStorage.removeItem("password");
     window.location.href = "/login";
+  };
+
+  const handleCart = (id) => {
+    if (cart.find((item) => item.id === id)) {
+      setCart(
+        cart.map((item) =>
+          item.id === id ? { ...item, qty: item.qty + 1 } : item
+        )
+      );
+    } else {
+      setCart([...cart, { id, qty: 1 }]);
+    }
   };
   return (
     <div>
@@ -34,15 +55,64 @@ const ProductPage = () => {
           onClick={handleLogout}
         ></Button>
       </div>
-      <div className="flex justify-center py-5 gap-5">
-        {products.map((product) => (
-          <CardProduct key={product.id}>
-            <CardProduct.Header image={product.img} />
-            <CardProduct.Body title={product.title}>
-              {product.description}
-            </CardProduct.Body>
-          </CardProduct>
-        ))}
+      <div className="grid grid-cols-3">
+        <div className="col-span-2 flex">
+          {products.map((product) => (
+            <CardProduct key={product.id}>
+              <CardProduct.Header image={product.img} />
+              <CardProduct.Body
+                title={product.title}
+                price={product.price}
+                id={product.id}
+                handleCart={handleCart}
+              >
+                {product.description}
+              </CardProduct.Body>
+            </CardProduct>
+          ))}
+        </div>
+        <div>
+          <p className="text-2xl font-bold text-blue-600 ml-5 mb-2">CART</p>
+          <table className="text-left table-auto border-separate border-spacing-5">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cart.map((item) => {
+                const product = products.find(
+                  (product) => product.id === item.id
+                );
+                console.log("item:", item);
+                console.log("product:", product);
+                return (
+                  <tr key={item.id}>
+                    <td>{product ? product.title : "Product not found"}</td>
+                    <td>
+                      Rp
+                      {product.price.toLocaleString("id-ID", {
+                        styles: "currency",
+                        currency: "IDR",
+                      })}
+                    </td>
+                    <td>{item.qty}</td>
+                    <td>
+                      Rp
+                      {(product.price * item.qty).toLocaleString("id-ID", {
+                        styles: "currency",
+                        currency: "IDR",
+                      })}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
